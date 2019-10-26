@@ -71,6 +71,8 @@ installHAProxy() {
 	rm -rf /etc/haproxy/haproxy.cfg
 	curl -o /etc/haproxy/haproxy.cfg https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/prep/haproxy.cfg > /dev/null 2>&1
 	curl -o /etc/haproxy/whitelist.lst https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/misc/whitelist.lst > /dev/null 2>&1
+	touch /etc/haproxy/monitoring-whitelist.lst
+	echo "0.0.0.0/0" >> monitoring-whitelist.lst
 	service haproxy restart
 }
 
