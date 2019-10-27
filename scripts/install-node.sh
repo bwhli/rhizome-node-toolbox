@@ -45,6 +45,7 @@ formatDiskProcess() {
 		cp /etc/fstab /etc/fstab.backup
 		echo UUID=`blkid -s UUID -o value /dev/$DEVICE_ID` $MOUNT_POINT ext4 discard,defaults,nofail 0 2 | tee -a /etc/fstab
 	fi
+	returnMainMenu
 }
 
 installNodeDependencies() {
@@ -94,6 +95,7 @@ installHAProxy() {
 	echo -e "This HAProxy configuration includes a rate limit and IP whitelist feature. The rate limit settings can be found at /etc/haproxy/haproxy.cfg. The IP whitelist can be found at /etc/haproxy/whitelist.lst."
 	echo
 	echo -e "This HAProxy configuration includes a monitoring page, which can be accessed at http://YOUR-IP:8404/stats/. The IP whitelist for monitoring can be found at /etc/haproxy/monitoring-whitelist.lst. Please add your whitelisted IPs to this file to access the stats page.${NC}"
+	returnMainMenu
 }
 
 installCitizenNode(){
@@ -130,8 +132,8 @@ installCitizenNodeEasy(){
 	chmod -R a=r,a+X,u+w /home/icon
 	chown icon:icon -R /home/icon
 	chmod -R a=r,a+X,u+w /home/icon/citizen
-	chown icon:icon -R /home/icon/citizen
 	chmod 700 /home/icon/citizen/docker-compose.yml
+	chown icon:icon -R /home/icon/citizen
 	#Add icon to docker group.
 	usermod -aG docker icon
 	#START DOCKER IMAGE
@@ -160,8 +162,8 @@ installCitizenNodeAdvanced(){
 	chmod -R a=r,a+X,u+w /home/icon
 	chown icon:icon -R /home/icon
 	chmod -R a=r,a+X,u+w $CTZ_INSTALL_DIR
+	chmod 700 $CTZ_INSTALL_DIR/docker-compose.yml
 	chown icon:icon -R $CTZ_INSTALL_DIR
-	chmod 700 /home/icon/citizen/docker-compose.yml
 	#Add icon to docker group.
 	usermod -aG docker icon
 	#START DOCKER IMAGE
@@ -199,6 +201,9 @@ installPRepNodeEasy(){
 	installNodeDependencies
 	#Create directory for P-Rep node.
 	mkdir -p /home/icon/prep
+	#Create /cert folder and keystore file.
+	mkdir -p /home/icon/prep/cert
+	touch /home/icon/prep/cert/keystore
 	##Download docker-compose.yml.
 	curl -o /home/icon/prep/docker-compose.yml https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/prep/docker-compose.yml > /dev/null 2>&1
 	#Download rc.local.
@@ -208,8 +213,8 @@ installPRepNodeEasy(){
 	chmod -R a=r,a+X,u+w /home/icon
 	chown icon:icon -R /home/icon
 	chmod -R a=r,a+X,u+w /home/icon/prep
-	chown icon:icon -R /home/icon/prep
 	chmod 700 /home/icon/prep/docker-compose.yml
+	chown icon:icon -R /home/icon/prep
 	#Add icon to docker group.
 	usermod -aG docker icon
 	#START DOCKER IMAGE
@@ -218,31 +223,33 @@ installPRepNodeEasy(){
 	echo "Installation is finished!"
 	sleep 2
 	echo "Please add keystore file and password to docker-compose.yml and start the Docker image with docker-compose up -d."
-	sleep 2
-	echo "Returning to main menu..."
-	sleep 2
-	rhizomeToolbox
+	returnMainMenu
 }
 
 installPRepNodeAdvanced(){
 	echo -e "${YELLOW}What directory would you like to install the ICON P-Rep node to? (e.g. /mnt/disks/data1/prep)${NC}"
 	read PREP_INSTALL_DIR
-	#Install citizen node dependencies.
+	#Install P-Rep node dependencies.
 	installNodeDependencies
-	#Create directory for citizen node.
+	#Create directory for P-Rep node.
 	mkdir -p $PREP_INSTALL_DIR
+	#Create /cert folder and keystore file.
+	mkdir -p $PREP_INSTALL_DIR/cert
+	touch $PREP_INSTALL_DIR/cert/keystore
 	#Make symlink to home folder of "icon" user.
 	ln -s $PREP_INSTALL_DIR /home/icon
 	#Download rc.local.
 	curl -o /etc/rc.local https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/scripts/rc.local > /dev/null 2>&1
 	chmod +x /etc/rc.local
 	#Download docker-compose.yml.
-	curl -o /home/icon/prep/docker-compose.yml https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/prep/docker-compose.yml > /dev/null 2>&1
+	curl -o $PREP_INSTALL_DIR/docker-compose.yml https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/prep/docker-compose.yml > /dev/null 2>&1
+	#Permissions reset
 	chmod -R a=r,a+X,u+w /home/icon
 	chown icon:icon -R /home/icon
 	chmod -R a=r,a+X,u+w $PREP_INSTALL_DIR
+	chmod 700 $PREP_INSTALL_DIR/docker-compose.yml
+	chmod 700 $PREP_INSTALL_DIR/cert/keystore
 	chown icon:icon -R $PREP_INSTALL_DIR
-	chmod 700 /home/icon/prep/docker-compose.yml
 	#Add icon to docker group.
 	usermod -aG docker icon
 	#START DOCKER IMAGE
@@ -251,10 +258,7 @@ installPRepNodeAdvanced(){
 	echo "Installation is finished!"
 	sleep 2
 	echo "Please add keystore file and password to docker-compose.yml and start the Docker image."
-	sleep 2
-	echo "Returning to main menu..."
-	sleep 2
-	rhizomeToolbox
+	returnMainMenu
 }
 
 createICONUser(){
@@ -296,6 +300,14 @@ installStackdriver(){
 	sudo bash install-monitoring-agent.sh
 	rm -rf install-logging-agent.sh
 	rm -rf install-monitoring-agent.sh
+	returnMainMenu
+}
+
+returnMainMenu(){
+	sleep 2
+	echo "Returning to main menu..."
+	sleep 2
+	rhizomeToolbox
 }
 
 rhizomeToolbox() {
