@@ -78,12 +78,14 @@ installHAProxy() {
 	if [ -f /home/icon/citizen/docker-compose.yml ]; then
 		curl -o /home/icon/citizen/docker-compose_haproxy.yml https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/citizen/default/docker-compose_haproxy.yml > /dev/null 2>&1
 		chmod 700 /home/icon/citizen/docker-compose_haproxy.yml
+		chown icon:icon /home/icon/citizen/docker-compose_haproxy.yml
 	fi
 
 	#Start P-Rep node if docker-compose.yml is detected.
 	if [ -f /home/icon/prep/docker-compose.yml ]; then
 		curl -o /home/icon/prep/docker-compose_haproxy.yml https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/prep/default/docker-compose_haproxy.yml > /dev/null 2>&1
 		chmod 700 /home/icon/prep/docker-compose_haproxy.yml
+		chown icon:icon /home/icon/prep/docker-compose_haproxy.yml
 	fi
 	echo -e "${YELLOW}In order for HAProxy to function correctly, the following edits have to be made to your docker-compose.yml file."
 	echo -e "- network_mode: host should be removed."
