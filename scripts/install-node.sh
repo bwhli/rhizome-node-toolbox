@@ -109,15 +109,15 @@ installCitizenNode(){
 	select opt in "Easy" "Advanced"; do
 	    case $opt in
 	        Easy )
-				createICONUser;
-				installCitizenNodeEasy;
-				break;;
+					createICONUser;
+					installCitizenNodeEasy;
+					break;;
 	        Advanced )
-				echo "You chose advanced mode";
-				break;;
+					createICONUser;
+					installCitizenNodeAdvanced;
+					break;;
 	    esac
 	done
-	#wget -o https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/citizen/default/docker-compose.yml
 }
 
 installCitizenNodeEasy(){
@@ -195,7 +195,6 @@ installPRepNode(){
 				break;;
 	    esac
 	done
-	#wget -o https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/citizen/default/docker-compose.yml
 }
 
 installPRepNodeEasy(){
