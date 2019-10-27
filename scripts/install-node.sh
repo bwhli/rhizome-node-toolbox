@@ -50,7 +50,7 @@ formatDiskProcess() {
 installNodeDependencies() {
 	#Install dependencies for citizen node.
 	apt-get update
-	apt-get install  -y systemd apt-transport-https ca-certificates curl gnupg-agent software-properties-common 
+	apt-get install  -y systemd apt-transport-https ca-certificates curl gnupg-agent software-properties-common
 	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 	add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 	apt-get update
@@ -72,8 +72,28 @@ installHAProxy() {
 	curl -o /etc/haproxy/haproxy.cfg https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/prep/haproxy.cfg > /dev/null 2>&1
 	curl -o /etc/haproxy/whitelist.lst https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/misc/whitelist.lst > /dev/null 2>&1
 	touch /etc/haproxy/monitoring-whitelist.lst
-	echo "0.0.0.0/0" >> monitoring-whitelist.lst
-	service haproxy restart
+	echo "127.0.0.1" >> /etc/haproxy/monitoring-whitelist.lst
+	service haproxy reload
+	if [ -f /home/icon/citizen/docker-compose.yml ]; then
+		curl -o /home/icon/citizen/docker-compose_haproxy.yml https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/citizen/default/docker-compose_haproxy.yml > /dev/null 2>&1
+		chmod 700 /home/icon/citizen/docker-compose_haproxy.yml
+	fi
+
+	#Start P-Rep node if docker-compose.yml is detected.
+	if [ -f /home/icon/prep/docker-compose.yml ]; then
+		curl -o /home/icon/prep/docker-compose_haproxy.yml https://raw.githubusercontent.com/rhizomeicx/rhizome-node-toolbox/master/prep/default/docker-compose_haproxy.yml > /dev/null 2>&1
+		chmod 700 /home/icon/prep/docker-compose_haproxy.yml
+	fi
+	echo -e "${YELLOW}In order for HAProxy to function correctly, the following edits have to be made to your docker-compose.yml file."
+	echo -e "network_mode: host should be removed."
+	echo -e "- 7100:7100 should be changed to \"127.0.0.2:7200:7100\""
+	echo -e "- 7100:7100 should be changed to \"127.0.0.2:9100:9000\""
+	echo
+	echo -e "For your convenience, a pre-configured file has been downloaded to /home/icon/citizen/docker-compose_haproxy.yml. If needed, please add your keystore and keystore password to this file, replace your original docker-compose.yml, and run \"docker-compose up -d\"."
+	echo
+	echo -e "This HAProxy configuration includes a rate limit and IP whitelist feature. The rate limit settings can be found at /etc/haproxy/haproxy.cfg. The IP whitelist can be found at /etc/haproxy/whitelist.lst."
+	echo
+	echo -e "This HAProxy configuration includes a monitoring page, which can be accessed at http://YOUR-IP:8404/stats/. The IP whitelist for monitoring can be found at /etc/haproxy/monitoring-whitelist.lst. Please add your whitelisted IPs to this file to access the stats page."
 }
 
 installCitizenNode(){
@@ -111,6 +131,7 @@ installCitizenNodeEasy(){
 	chown icon:icon -R /home/icon
 	chmod -R a=r,a+X,u+w /home/icon/citizen
 	chown icon:icon -R /home/icon/citizen
+	chmod 700 /home/icon/citizen/docker-compose.yml
 	#Add icon to docker group.
 	usermod -aG docker icon
 	#START DOCKER IMAGE
@@ -140,6 +161,7 @@ installCitizenNodeAdvanced(){
 	chown icon:icon -R /home/icon
 	chmod -R a=r,a+X,u+w $CTZ_INSTALL_DIR
 	chown icon:icon -R $CTZ_INSTALL_DIR
+	chmod 700 /home/icon/citizen/docker-compose.yml
 	#Add icon to docker group.
 	usermod -aG docker icon
 	#START DOCKER IMAGE
@@ -187,6 +209,7 @@ installPRepNodeEasy(){
 	chown icon:icon -R /home/icon
 	chmod -R a=r,a+X,u+w /home/icon/prep
 	chown icon:icon -R /home/icon/prep
+	chmod 700 /home/icon/prep/docker-compose.yml
 	#Add icon to docker group.
 	usermod -aG docker icon
 	#START DOCKER IMAGE
@@ -194,7 +217,7 @@ installPRepNodeEasy(){
 	sleep 2
 	echo "Installation is finished!"
 	sleep 2
-	echo "Please add keystore file and password to docker-compose.yml and start the Docker image."
+	echo "Please add keystore file and password to docker-compose.yml and start the Docker image with docker-compose up -d."
 	sleep 2
 	echo "Returning to main menu..."
 	sleep 2
@@ -219,6 +242,7 @@ installPRepNodeAdvanced(){
 	chown icon:icon -R /home/icon
 	chmod -R a=r,a+X,u+w $PREP_INSTALL_DIR
 	chown icon:icon -R $PREP_INSTALL_DIR
+	chmod 700 /home/icon/prep/docker-compose.yml
 	#Add icon to docker group.
 	usermod -aG docker icon
 	#START DOCKER IMAGE
@@ -262,7 +286,16 @@ confirmUserPassword(){
 		return
    	else
     		confirmUserPassword
-	fi 
+	fi
+}
+
+installStackdriver(){
+	curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh
+	bash install-logging-agent.sh
+	curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
+	sudo bash install-monitoring-agent.sh
+	rm -rf install-logging-agent.sh
+	rm -rf install-monitoring-agent.sh
 }
 
 rhizomeToolbox() {
@@ -270,7 +303,7 @@ echo
 echo -e "${YELLOW}RHIZOME Toolbox v1.0${NC}"
 echo
 PS3=$'\n''RHIZOME Toolbox v0.2> '
-options=("Format and Mount Disk" "Install Citizen Node" "Install P-Rep Node" "Update Node Image" "Quit")
+options=("Format and Mount Disk" "Install Citizen Node" "Install P-Rep Node" "Install HAProxy" "Install Google Stackdriver" "Quit")
 select opt in "${options[@]}"
 do
     case $opt in
@@ -278,18 +311,21 @@ do
             formatDisk;
             break;;
         "Install Citizen Node")
-			installNodeDependencies;
-			installHAProxy;
+						installNodeDependencies;
             installCitizenNode;
             break;;
         "Install P-Rep Node")
             installNodeDependencies;
-            installHAProxy;
             installPRepNode;
             break;;
+				"Install HAProxy")
+						installHAProxy;
+						break;;
+				"Install Google Stackdriver")
+						installStackdriver;
+						break;;
         "Quit")
-            break
-            ;;
+            break;;
         *) echo "invalid option $REPLY";;
     esac
 done

@@ -3,7 +3,6 @@ services:
   prep-node:
      image: "iconloop/prep-node:1910211829xc2286d"
      container_name: "prep-mainnet"
-     network_mode: host
      restart: "always"
      environment:
         NETWORK_ENV: "mainnet"
@@ -21,5 +20,5 @@ services:
         - ./data:/data # mount a data volumes
         - ./cert:/cert # Automatically generate cert key files here
      ports:
-        - 9000:9000
-        - 7100:7100
+         - "127.0.0.2:9100:9000"
+         - "127.0.0.2:7200:7100"
