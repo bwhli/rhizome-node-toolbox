@@ -85,7 +85,7 @@ installHAProxy() {
 		chmod 700 /home/icon/prep/docker-compose_haproxy.yml
 	fi
 	echo -e "${YELLOW}In order for HAProxy to function correctly, the following edits have to be made to your docker-compose.yml file."
-	echo -e "network_mode: host should be removed."
+	echo -e "- network_mode: host should be removed."
 	echo -e "- 7100:7100 should be changed to \"127.0.0.2:7200:7100\""
 	echo -e "- 7100:7100 should be changed to \"127.0.0.2:9100:9000\""
 	echo
@@ -93,7 +93,7 @@ installHAProxy() {
 	echo
 	echo -e "This HAProxy configuration includes a rate limit and IP whitelist feature. The rate limit settings can be found at /etc/haproxy/haproxy.cfg. The IP whitelist can be found at /etc/haproxy/whitelist.lst."
 	echo
-	echo -e "This HAProxy configuration includes a monitoring page, which can be accessed at http://YOUR-IP:8404/stats/. The IP whitelist for monitoring can be found at /etc/haproxy/monitoring-whitelist.lst. Please add your whitelisted IPs to this file to access the stats page."
+	echo -e "This HAProxy configuration includes a monitoring page, which can be accessed at http://YOUR-IP:8404/stats/. The IP whitelist for monitoring can be found at /etc/haproxy/monitoring-whitelist.lst. Please add your whitelisted IPs to this file to access the stats page.${NC}"
 }
 
 installCitizenNode(){
@@ -300,7 +300,7 @@ installStackdriver(){
 
 rhizomeToolbox() {
 echo
-echo -e "${YELLOW}RHIZOME Toolbox v1.0${NC}"
+echo -e "${YELLOW}RHIZOME Toolbox v0.2${NC}"
 echo
 PS3=$'\n''RHIZOME Toolbox v0.2> '
 options=("Format and Mount Disk" "Install Citizen Node" "Install P-Rep Node" "Install HAProxy" "Install Google Stackdriver" "Quit")
